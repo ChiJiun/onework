@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>會議室預約系統</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
+<div id="toast" class="toast" role="status"></div>
+
+<section id="loginView" class="login-shell">
+    <div class="login-copy">
+        <span class="eyebrow">MEETING SPACE</span>
+        <h1>讓每一次會議，<br>都有剛好的空間。</h1>
+        <p>查詢會議室、送出預約，並在同一個畫面完成審核與每日行程管理。</p>
+        <div class="feature-row">
+            <span>即時衝突檢查</span>
+            <span>審核流程</span>
+            <span>每日 Timeline</span>
+        </div>
+    </div>
+    <form id="loginForm" class="login-card">
+        <div class="brand-mark">M</div>
+        <h2>登入系統</h2>
+        <p class="muted">使用 Demo 帳號開始操作</p>
+        <label>帳號
+            <input id="username" value="alice" autocomplete="username" required>
+        </label>
+        <label>密碼
+            <input id="password" type="password" value="password" autocomplete="current-password" required>
+        </label>
+        <button class="primary wide" type="submit">登入</button>
+        <div class="demo-accounts">
+            <button type="button" data-account="alice">一般使用者</button>
+            <button type="button" data-account="reviewer">審核者</button>
+            <button type="button" data-account="admin">管理員</button>
+        </div>
+        <p id="loginError" class="error-text"></p>
+    </form>
+</section>
+
+<div id="appView" class="app-shell hidden">
+    <aside class="sidebar">
+        <div class="logo"><span>M</span> MeetFlow</div>
+        <nav>
+            <button class="nav-item active" data-page="overview">總覽</button>
+            <button class="nav-item" data-page="booking">預約會議室</button>
+            <button class="nav-item" data-page="timeline">每日行程</button>
+            <button class="nav-item" data-page="monthly">月報表</button>
+            <button id="reviewNav" class="nav-item hidden" data-page="review">預約審核</button>
+        </nav>
+        <div class="sidebar-footer">
+            <div class="avatar" id="avatar">A</div>
+            <div><strong id="userName">User</strong><small id="userRole">USER</small></div>
+            <button id="logoutBtn" title="登出">↗</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header>
+            <div>
+                <p class="eyebrow">MEETING ROOM RESERVATION</p>
+                <h1 id="pageTitle">預約總覽</h1>
+            </div>
+            <button class="primary" data-go="booking">＋ 新增預約</button>
+        </header>
+
+        <section id="overviewPage" class="page">
+            <div class="stats">
+                <article><span>會議室</span><strong id="roomCount">0</strong><small>可預約空間</small></article>
+                <article><span>今日已核准</span><strong id="todayCount">0</strong><small>場會議</small></article>
+                <article><span>本月待審</span><strong id="pendingCount">0</strong><small>筆申請</small></article>
+            </div>
+            <div class="section-heading">
+                <div><h2>會議室</h2><p>依容量與設備選擇適合的空間</p></div>
+            </div>
+            <div id="roomGrid" class="room-grid"></div>
+        </section>
+
+        <section id="bookingPage" class="page hidden">
+            <div class="panel form-panel">
+                <div><h2>建立新預約</h2><p>待審核期間也會保留時段，避免重複申請。</p></div>
+                <form id="bookingForm" class="booking-form">
+                    <label>會議室<select id="bookingRoom" required></select></label>
+                    <label>會議主題<input id="bookingTitle" maxlength="150" required placeholder="例如：Sprint Planning"></label>
+                    <label class="span-2">說明<textarea id="bookingDescription" maxlength="1000" placeholder="會議目的與備註"></textarea></label>
+                    <label>開始時間<input id="startTime" type="datetime-local" required></label>
+                    <label>結束時間<input id="endTime" type="datetime-local" required></label>
+                    <label>參與人數<input id="attendeeCount" type="number" min="1" value="2" required></label>
+                    <div class="form-actions"><button type="button" class="secondary" data-go="overview">取消</button><button class="primary" type="submit">送出預約</button></div>
+                </form>
+            </div>
+        </section>
+
+        <section id="timelinePage" class="page hidden">
+            <div class="toolbar panel">
+                <label>選擇日期<input id="timelineDate" type="date"></label>
+                <button id="loadTimeline" class="primary">查詢</button>
+                <span id="timelineSummary" class="result-summary"></span>
+            </div>
+            <div id="timelineList" class="timeline panel"></div>
+        </section>
+
+        <section id="monthlyPage" class="page hidden">
+            <div class="toolbar panel">
+                <label>月份<input id="monthInput" type="month"></label>
+                <label>狀態<select id="statusFilter"><option value="">全部</option><option>PROCESSING</option><option>APPROVED</option><option>REJECTED</option></select></label>
+                <button id="loadMonthly" class="primary">查詢</button>
+            </div>
+            <div id="monthlyStats" class="stats compact"></div>
+            <div class="panel table-wrap"><table><thead><tr><th>時間</th><th>會議室</th><th>主題</th><th>申請人</th><th>狀態</th></tr></thead><tbody id="monthlyRows"></tbody></table></div>
+        </section>
+
+        <section id="reviewPage" class="page hidden">
+            <div class="section-heading"><div><h2>待審核預約</h2><p>確認申請內容後通過或填寫原因退回。</p></div></div>
+            <div id="reviewList" class="review-list"></div>
+        </section>
+    </main>
+</div>
+
+<dialog id="rejectDialog">
+    <form id="rejectForm" method="dialog">
+        <h2>退回預約</h2>
+        <p>請填寫退回原因，申請人可由查詢結果看到原因。</p>
+        <textarea id="rejectReason" maxlength="500" required placeholder="例如：會議室設備維護中"></textarea>
+        <div class="form-actions"><button value="cancel" class="secondary">取消</button><button id="confirmReject" value="default" class="danger">確認退回</button></div>
+    </form>
+</dialog>
+
+<script src="/js/app.js"></script>
+</body>
+</html>

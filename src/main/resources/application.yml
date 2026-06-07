@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: meeting-room
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/meeting_room}
+    username: ${DB_USERNAME:meeting}
+    password: ${DB_PASSWORD:meeting}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+
+server:
+  error:
+    include-message: never
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:change-this-demo-secret-key-at-least-32-bytes}
+    expiration: PT8H
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
