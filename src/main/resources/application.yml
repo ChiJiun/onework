@@ -24,6 +24,8 @@ app:
   jwt:
     secret: ${JWT_SECRET:change-this-demo-secret-key-at-least-32-bytes}
     expiration: PT8H
+  admin-login:
+    allowed-ips: ${ADMIN_LOGIN_ALLOWED_IPS:127.0.0.1,::1,0:0:0:0:0:0:0:1}
 
 springdoc:
   swagger-ui:

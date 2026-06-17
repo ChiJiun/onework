@@ -56,6 +56,54 @@ class ReservationApiIntegrationTest {
     }
 
     @Test
+    void adminIpLoginReturnsJwtWhenRemoteAddressIsAllowed() throws Exception {
+        mockMvc.perform(post("/api/auth/admin/ip-login")
+                .with(request -> {
+                    request.setRemoteAddr("192.168.10.25");
+                    return request;
+                })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"username":"admin","password":"password"}
+                    """))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.token").isNotEmpty())
+            .andExpect(jsonPath("$.role").value("ADMIN"));
+    }
+
+    @Test
+    void adminIpLoginRejectsRemoteAddressOutsideWhitelist() throws Exception {
+        mockMvc.perform(post("/api/auth/admin/ip-login")
+                .with(request -> {
+                    request.setRemoteAddr("10.0.0.10");
+                    return request;
+                })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"username":"admin","password":"password"}
+                    """))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.message").value("Administrator login is not allowed from this IP address"));
+    }
+
+    @Test
+    void adminIpLoginRejectsNonAdminAccount() throws Exception {
+        mockMvc.perform(post("/api/auth/admin/ip-login")
+                .with(request -> {
+                    request.setRemoteAddr("127.0.0.1");
+                    return request;
+                })
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                    {"username":"alice","password":"password"}
+                    """))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.status").value(403))
+            .andExpect(jsonPath("$.message").value("Only administrator accounts can use IP whitelist login"));
+    }
+
+    @Test
     void invalidLoginReturnsStructuredUnauthorizedResponse() throws Exception {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)

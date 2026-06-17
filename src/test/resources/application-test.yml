@@ -17,3 +17,5 @@ app:
   jwt:
     secret: test-secret-key-that-is-at-least-32-bytes-long
     expiration: PT1H
+  admin-login:
+    allowed-ips: 127.0.0.1,::1,192.168.10.0/24
